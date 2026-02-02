@@ -1,13 +1,19 @@
-MAIN = main
-PDF = $(MAIN).pdf
+CHAPTERS = $(wildcard chapters/*)
+NAMES = $(notdir $(CHAPTERS))
+PDFS = $(addprefix output/, $(addsuffix .pdf, $(NAMES)))
 
-all: $(PDF)
+all: $(PDFS)
 
-$(PDF): $(MAIN).tex sections/*.tex
-	pdflatex $(MAIN).tex
-	pdflatex $(MAIN).tex
+output/%.pdf: chapters/%/main.tex $(wildcard chapters/%/lectures/*.tex)
+	cd chapters/$* && pdflatex main.tex && pdflatex main.tex
+	mkdir -p output
+	mv chapters/$*/main.pdf $@
+	cd chapters/$* && rm -f *.aux *.log *.nav *.out *.snm *.toc *.vrb
 
 clean:
-	rm -f *.aux *.log *.nav *.out *.snm *.toc *.vrb *.pdf
+	rm -rf output
+	for dir in $(CHAPTERS); do \
+		cd $$dir && rm -f *.aux *.log *.nav *.out *.snm *.toc *.vrb *.pdf && cd ../..; \
+	done
 
 .PHONY: all clean
